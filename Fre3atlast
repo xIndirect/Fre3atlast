@@ -1,5 +1,11 @@
 @echo off
 color 0c
+set md5=c88dd947eb3b36eec90503a3525ae0de
+Echo verifying that your device is indeed an HTC Evo Shift
+find "ro.product.device=speedy" build.prop
+if ERRORLEVEL==0 SET device=speedy
+if ERRORLEVEL==1 goto oops!
+echo your phone is a %device% meaning we can continue!
 echo have you temp rooted before using fre3vo?
 :choice4
 set /p C=(Y/N)? 
@@ -13,8 +19,11 @@ echo clearing out cache by rebooting to prevent issues while exploiting
 adb reboot
 adb wait-for-device
 PING 1.1.1.1 -n 1 -w 5000 >NUL
-md5sum misc.img
-type MD5.txt
+md5sum miscpulled.img > md5.txt
+find "%md5%" md5.txt
+if ERRORLEVEL==0 goto worked
+if ERRORLEVEL==1 goto badmd5
+:worked
 echo is the misc.img MD5 sum as well as the original MD5. If they don't match please redownload.
 adb shell getprop ro.bootloader
 echo is your Hboot version
@@ -29,6 +38,7 @@ goto choice1
 set C1=%C%1
 goto %C1%
 :Y1
+if %C1%==Y1 set perms=yes
 cls
 echo Starting
 adb kill-server > NUL
@@ -55,22 +65,16 @@ goto choice2
 set C2=%C%2
 goto %C2%
 :Y2
-:N3
+echo now pushing misc.img!
 adb push misc.img /sdcard/misc.img
 adb shell dd if=/sdcard/misc.img of=/dev/block/mmcblk0p17
 adb pull /sdcard/misc.img miscpulled.img
 cls
-md5sum miscpulled.img
-type MD5.txt
-echo does it match?
-:choice3
-set /p C=(Y/N)? 
-for %%? in (Y N) do if /I "%C%"=="%%?" goto ok3
-goto choice3
-:ok3
-set C3=%C%3
-goto %C3%
-:Y3
+md5sum miscpulled.img > md5.txt
+find "%md5%" md5.txt
+if ERRORLEVEL==0 goto successful
+if ERRORLEVEL==1 goto badmd5
+:successful
 echo * signature has been changed sucessfully!
 Echo congrats on gaining root access.
 echo Be sure to say thanks to OTAking and Scary for finding this out.
@@ -79,7 +83,38 @@ PING 1.1.1.1 -n 1 -w 5000 >NUL
 echo if it doesnt say "su not found" then your rooted and this worked
 adb shell su
 PING 1.1.1.1 -n 1 -w 5000 >NUL
-:N2
+cls
+echo do you want to get the ZIP or the EXE to RUU down to froyo?
+:choice5
+set /p C=(ZIP/EXE)? 
+for %%? in (ZIP EXE) do if /I "%C%"=="%%?" goto ok5
+goto choice
+set C5=%C%5
+goto %C5%
+:ok5
+:EXE5
+wget http://www31.multiupload.com:81/files/BA6A1907D6E4AB8C1575BF5AAE896B498678C01F683E4BB091E3E35918BA01A71367A5FCD371F47C8601FE67D1F133665E6F71C93D83CFB32A96F766EF874E8C36F8696E6A8603F3A865CA7FBFB12260D23B/RUU_Speedy_Sprint_WWE_1.17.651.1_Radio_1.07.00.1129_NV_SPCS_1.52_1103_release_160079_signed.exe
+echo now just run the EXE
+echo The install script included with this script will actually install the apks you need to root your phone while on froyo, just be sure to run it AFTER you downgrade!
 exit
-:Y4
+:N2
+wimax
+exit
+:N4
 Fre3atlastreroot
+:oops
+Echo your device is not an HTC Evo Shift! Running a search to find out what phone it is!
+adb pull /system/build.prop
+find "ro.product.device=" build.prop
+pause
+exit
+:badmd5
+echo Downloading the proper misc.img file now!
+wget http://dl.dropbox.com/u/15069134/misc.img
+goto Y2
+:ZIP5
+wget http://dl.dropbox.com/u/41040697/PG06IMG.zip
+echo it will be in the same folder as this when it's done downloading then you can just push to your sdcard then reboot into bootloader!
+echo The install script will actually install the apks you need to root your phone while on froyo, just be sure to run it AFTER you downgrade!
+ping 1.1.1.1 -n 1 -w 10000
+exit
