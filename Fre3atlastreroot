@@ -1,15 +1,20 @@
 @echo off
 color 0c
+set md5=c88dd947eb3b36eec90503a3525ae0de
+set misc=misc.img
+set md5t=md5.txt
 echo clearing out cache by rebooting to prevent issues while exploiting
 adb reboot
 adb wait-for-device
 PING 1.1.1.1 -n 1 -w 5000 >NUL
-md5sum misc.img
-type MD5.txt
-echo is the misc.img MD5 sum as well as the original MD5. If they don't match please redownload.
-adb shell getprop ro.bootloader
-echo this is your HBOOT VERSION
-echo There are only 2 times this thing will stop. Right now to confirm you want to root and when you flash HBOOT.
+:md5fix
+md5sum %misc% > %md5t%
+find "%md5%" %md5t%
+if ERRORLEVEL==0 goto ok
+if ERRORLEVEL==1 goto badmd5
+:ok
+echo is the %misc% MD5 sum as well as the original MD5. If they don't match this script will redownload the necessary file.
+echo There are only a few times this thing will stop. Right now to confirm you want to root and when you flash HBOOT.
 echo This is just confirmation if you want to run it.
 :choice1
 set /p C=(Y/N)? 
@@ -24,8 +29,6 @@ adb kill-server
 adb start-server
 adb shell cd /data/local/tmp;chmod 777 /data/local/tmp/su;cd /;mount -o remount,rw -t rootfs rootfs /;rm vendor;mkdir vendor;vendor/bin;cat /data/local/tmp/su > /vendor/bin/su;chmod 4755 /vendor/bin/su
 echo This concludes obtaining root. Please make your choice about flashing the Hboot sig bypass.
-adb shell su
-echo if it tells you "not found" do a battery pull and then run the main script!
 :choice2
 set /p C=(Y/N)? 
 for %%? in (Y N) do if /I "%C%"=="%%?" goto ok2
@@ -35,23 +38,69 @@ set C2=%C%2
 goto %C2%
 :Y2
 :N3
-adb push misc.img /sdcard/misc.img
-adb dd if=/sdcard/misc.img of=/dev/block/mmcblk0p17
-adb pull /sdcard/misc.img miscpulled.img
+adb push %misc% /sdcard/%misc%
+adb dd if=/sdcard/%misc% of=/dev/block/mmcblk0p17
+adb pull /sdcard/%misc% %misc%
 cls
-md5sum miscpulled.img
-type MD5.txt
-echo does it match?
-:start
-:choice3
-set /p C=(Y/N)? 
-for %%? in (Y N) do if /I "%C%"=="%%?" goto ok3
-goto choice3
-:ok3
-set C3=%C%3
-goto %C3%
-:Y3
+md5sum %misc% > %md5t%
+find "%md5%" %md5t%
+if ERRORLEVEL==0 goto successful
+if ERRORLEVEL==1 goto badmd5
+:successful
 echo * signature has been changed sucessfully!
 echo This concludes the re-rooting and the flashing of the hboot sig bypass. Enjoy!
-:N1
+echo do you want to get the ZIP or the EXE to RUU down to froyo?
+:choice5
+set /p C=(ZIP/EXE)? 
+for %%? in (ZIP EXE) do if /I "%C%"=="%%?" goto ok5
+goto choice
+set C5=%C%5
+cls
+goto %C5%
+:ok5
+:EXE5
+set method=exe
+if %method%==exe set link=http://dl.dropbox.com/u/15069134/RUU_Speedy_Sprint_WWE_1.17.651.1_Radio_1.07.00.1129_NV_SPCS_1.52_1103_release_160079_signed.exe
+echo %method% download link: %link% > %device%_%method%_link.txt
+echo now just download and run the EXE *link included in %device%_%method%_link.txt
+echo The install script included with this script will actually install the apks you need to root your phone while on froyo, just be sure to run it AFTER you downgrade!
+echo echo *********************************** > install.bat
+echo echo * Z4Root and Visionary install    * >> install.bat
+echo echo *       Made by Indirect          * >> install.bat
+echo echo *********************************** >> install.bat
+echo adb install z4rootz.apk >> install.bat
+echo adb install visionaries.apk >> install.bat
+echo echo remember to put it into Airplane Mode before running the perm root and if it freezes up, just do a battery pull then retry *may need to do this more than once. If one doesnt work, try the other. >>install.bat
+echo ping 1.1.1.1 -n 1 -w 10000 >>install.bat
+exit
 :N2
+wimax
+exit
+:badmd5
+echo Downloading the proper misc.img file now!
+wget http://dl.dropbox.com/u/15069134/misc.img && goto Y2
+:ZIP5
+set method=zip
+if %method%==zip set link=http://dl.dropbox.com/u/41040697/PG06IMG.zip
+echo %method% download link: %link% > %device%_%method%_link.txt
+echo now just download and move the PG06IMG.zip to your sdcard and boot into bootloader! *link included in %device%_%method%_link.txt
+echo it will be in the same folder as this when it's done downloading then you can just push to your sdcard then reboot into bootloader!
+echo The install script will actually install the apks you need to root your phone while on froyo, just be sure to run it AFTER you downgrade!
+ping 1.1.1.1 -n 1 -w 1000
+echo echo *********************************** > install.bat
+echo echo * Z4Root and Visionary install    * >> install.bat
+echo echo *       Made by Indirect          * >> install.bat
+echo echo *********************************** >> install.bat
+echo adb install z4rootz.apk >> install.bat
+echo adb install visionaries.apk >> install.bat
+echo echo remember to put it into Airplane Mode before running the perm root and if it freezes up, just do a battery pull then retry *may need to do this more than once. If one doesnt work, try the other. >>install.bat
+echo ping 1.1.1.1 -n 1 -w 10000 >>install.bat
+exit
+exit
+:N1
+echo exiting!
+ping 1.1.1.1 -n 1 -w 5000
+exit
+:N2
+echo starting Wimax Backup portion of the script!
+wimax
