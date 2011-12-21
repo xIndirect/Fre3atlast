@@ -1,13 +1,15 @@
 @echo off
 color 0c
+rem This is being used so we can check the MD5 later on of misc.img so we dont brick the phone!
 set md5=c88dd947eb3b36eec90503a3525ae0de
 Echo verifying that your device is indeed an HTC Evo Shift
+rem this is going to check the device codename so we dont run this on a non-HTC Shift device.
 adb pull system/build.prop
 find "ro.product.device=speedy" build.prop
 if ERRORLEVEL==0 SET device=speedy
 if ERRORLEVEL==1 goto oops
 echo your phone is a %device% meaning we can continue!
-echo have you temp rooted before using fre3vo?
+echo have you temp rooted before using frere3vo?
 :choice4
 set /p C=(Y/N)? 
 for %%? in (Y N) do if /I "%C%"=="%%?" goto ok4
@@ -20,6 +22,7 @@ echo clearing out cache by rebooting to prevent issues while exploiting
 adb reboot
 adb wait-for-device
 PING 1.1.1.1 -n 1 -w 5000 >NUL
+rem this part is checking the image's MD5 sum using an external program called md5sum which is freeware.
 md5sum misc.img > md5.txt
 find "%md5%" md5.txt
 if ERRORLEVEL==0 goto worked
@@ -40,6 +43,7 @@ goto %C1%
 :Y1
 if %C1%==Y1 set perms=yes
 cls
+rem now starting Fre3vo exploit
 echo Starting
 adb kill-server > NUL
 adb push fre3vo /data/local/tmp
@@ -65,6 +69,7 @@ goto choice2
 set C2=%C%2
 goto %C2%
 :Y2
+rem This is where it pushes misc.img then immediately checks md5 on the image just incase as this would cause a brick if bad!
 echo now pushing misc.img!
 adb push misc.img /sdcard/misc.img
 adb shell dd if=/sdcard/misc.img of=/dev/block/mmcblk0p17
