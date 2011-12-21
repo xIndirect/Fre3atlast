@@ -7,8 +7,6 @@ find "ro.product.device=speedy" build.prop
 if ERRORLEVEL==0 SET device=speedy
 if ERRORLEVEL==1 goto oops
 echo your phone is a %device% meaning we can continue!
-rename z4root.apk z4rootz.apk
-rename visionary.apk visionaries.apk
 echo have you temp rooted before using fre3vo?
 :choice4
 set /p C=(Y/N)? 
@@ -22,12 +20,11 @@ echo clearing out cache by rebooting to prevent issues while exploiting
 adb reboot
 adb wait-for-device
 PING 1.1.1.1 -n 1 -w 5000 >NUL
-md5sum miscpulled.img > md5.txt
+md5sum misc.img > md5.txt
 find "%md5%" md5.txt
 if ERRORLEVEL==0 goto worked
 if ERRORLEVEL==1 goto badmd5
 :worked
-echo is the misc.img MD5 sum as well as the original MD5. If they don't match please redownload.
 adb shell getprop ro.bootloader
 echo is your Hboot version
 echo There are only 2 times this thing will stop.
